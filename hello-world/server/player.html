@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><style>html,body,#player{width:100%;height:100%;margin:0;background:#172e29;color:#f5edda;font:16px sans-serif}#notice{z-index:1;background:#172e29;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}#notice[hidden]{display:none}</style></head><body><div id="notice">Connect to the garden to listen.</div><div id="player"></div><script>
+'use strict';
+let token='',code=new URLSearchParams(location.search).get('room')||'',player=null,room=null,loaded='',ready=false,applyingUntil=0,polling=false,durationSent='';
+const notice=document.getElementById('notice');
+function emit(type,message){if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify({type,message}));}
+function show(message){notice.textContent=message;notice.hidden=!message;}
+async function action(body){if(!token)return;try{const r=await fetch('/api/rooms/'+code+'/action',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body)});if(r.ok){room=await r.json();sync();}}catch{emit('error','Room connection lost.');}}
+function sync(){
+ if(!ready||!room)return;
+ const entry=room.current;
+ if(!entry){if(loaded){applyingUntil=Date.now()+1500;player.stopVideo();loaded='';}show('The jukebox is waiting for your first song.');return;}
+ show('');
+ if(loaded!==entry.id){loaded=entry.id;durationSent='';applyingUntil=Date.now()+2000;player.loadVideoById({videoId:entry.videoId,startSeconds:room.position});if(!room.playing)player.pauseVideo();return;}
+ const state=player.getPlayerState();
+ if(Math.abs(player.getCurrentTime()-room.position)>3){applyingUntil=Date.now()+1500;player.seekTo(room.position,true);}
+ if(room.playing&&(state===2||state===5)){applyingUntil=Date.now()+1500;player.playVideo();}
+ if(!room.playing&&state===1){applyingUntil=Date.now()+1500;player.pauseVideo();}
+}
+async function poll(){if(!token||polling)return;polling=true;try{const r=await fetch('/api/rooms/'+code,{headers:{Authorization:'Bearer '+token}});const data=await r.json();if(!r.ok)throw Error(data.error||'Room unavailable');room=data;sync();}catch(e){emit('error',e.message);}finally{polling=false;}}
+window.thirdSpaceConnect=function(value){token=value.token;code=value.code;poll();};
+window.addEventListener('message',event=>{if(event.origin===location.origin&&event.data?.type==='connect')window.thirdSpaceConnect(event.data);});
+window.onYouTubeIframeAPIReady=function(){player=new YT.Player('player',{width:'100%',height:'100%',playerVars:{playsinline:1,controls:1,origin:location.origin,rel:0},events:{
+ onReady:()=>{ready=true;emit('ready','YouTube player ready');sync();},
+ onStateChange:event=>{emit('state',String(event.data));if(event.data===0&&loaded)action({type:'ended',expectedId:loaded});if(event.data===1&&loaded&&durationSent!==loaded){const duration=player.getDuration();if(duration>0){durationSent=loaded;action({type:'duration',expectedId:loaded,duration});}}if(Date.now()>applyingUntil&&room?.current?.id===loaded){if(event.data===1&&!room.playing)action({type:'play'});if(event.data===2&&room.playing)action({type:'pause'});}},
+ onError:event=>{const messages={2:'Invalid YouTube video.',5:'YouTube cannot play this video on this device.',100:'This video is private or unavailable.',101:'This video does not allow embedded playback.',150:'This video does not allow embedded playback.',153:'YouTube could not verify this player origin.'};emit('error',(messages[event.data]||'YouTube playback failed.')+' Use Next song to continue.');},
+ onAutoplayBlocked:()=>emit('error','Select Play inside the YouTube player to enable playback on this device.')
+}});};
+const api=document.createElement('script');api.src='https://www.youtube.com/iframe_api';api.onerror=()=>emit('error','Unable to reach YouTube. Check your internet connection.');document.head.appendChild(api);
+setInterval(poll,1200);emit('bridge','Room player loaded');
+</script></body></html>

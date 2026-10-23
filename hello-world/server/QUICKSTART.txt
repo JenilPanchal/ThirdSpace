@@ -1,0 +1,87 @@
+THIRD SPACE — JUKEBOX AND POTRAIT
+
+Start from the hello-world directory:
+  npm run room:server
+
+The server prints a Wi-Fi address such as http://192.168.4.42:8787.
+Keep it running while people are in the garden.
+
+On the TV:
+1. Log in to the local preview, create your avatar and enter the garden.
+2. Choose Jukebox. A room is assigned automatically: a random occupied
+   room with space (up to six people for automatic matching), or a new
+   room if none is available.
+3. The room code and share link appear at the top. Friends can open that
+   link on the same Wi-Fi, or use Join friends and enter the room code.
+4. Paste a YouTube link in the default YouTube link tab, or use Search
+   to find a song or artist. The first song starts the shared player;
+   later selections join the shared FIFO queue. Links need no API key.
+5. Switch to Queue to see upcoming songs and remove your own entries.
+
+The simulator defaults to http://10.0.2.2:8787. For a physical TV or a
+server on another computer, use Join friends to change Room server.
+The browser companion supports the same search and queue controls.
+The TV plays the music; the browser companion acts as a queue remote.
+
+ENABLE YOUTUBE MUSIC SEARCH
+Search uses the official YouTube Data API v3 and needs your own key.
+It searches the Music category for embeddable YouTube videos. Playback
+still uses the visible official YouTube embedded player.
+
+1. In Google Cloud Console (https://console.cloud.google.com/), create or
+   select a project and enable YouTube Data API v3.
+2. In APIs & Services > Credentials, create an API key. Restrict the key
+   to YouTube Data API v3. For hosted servers, use server IP restrictions
+   where available; the key is used by Node, not by the TV or browser.
+3. Copy hello-world/.env.example to hello-world/.env.local (ignored by
+   Git), and replace the empty key value:
+   YOUTUBE_API_KEY=your_key_here
+4. Stop the existing room server and start it from hello-world with:
+   node --env-file=.env.local server/room-server.mjs
+   This command requires Node 20.6 or later.
+
+Do not put the key in the app, manifest, share link or chat. Without a
+key, search gently suggests pasting a YouTube link. Configuration
+diagnostics stay out of the app UI; results are never fabricated. Search is
+cached for five minutes and rate limited per room member.
+Official API reference: https://developers.google.com/youtube/v3/docs/search/list
+
+Some YouTube videos disallow embedding, require sign-in, or have regional
+restrictions. Errors appear in the app; use Next song to move on. If
+YouTube blocks autoplay, select Play inside its player once.
+
+Rooms and queues are in memory and reset on server restart. Members
+expire after 45 seconds disconnected. The preview login is not an account
+service. Sharing currently works on the same Wi-Fi. Public internet
+hosting has not been configured; when deployed behind HTTPS, set
+THIRD_SPACE_PUBLIC_URL=https://your-host so share links use that origin.
+
+The simulator stays muted with QEMU_AUDIO_DRV=none. Sound has not been
+verified on Vega; use a physical Fire TV for a later audible test.
+
+Checks:
+  npm test -- --runInBand --watchman=false
+  npm run room:test
+  npm run build:debug
+
+POTRAIT — SHARED PIXEL ART
+The second bench opens a 32 x 24 canvas with a 16-color palette.
+Choose a color, use the D-pad to move between squares, and press Select
+to place one pixel. Move off the right edge to reach the palette.
+Each local player/profile gets two placements per minute, refilled
+together 60 seconds after the first placement. Unchanged squares do not
+spend a placement. A countdown shows the next refill. The server checks
+coordinates, colors, bench membership and the allowance for every edit.
+
+New players in the same room see the same canvas and can paint over any
+square. Share the link at the top (ending in &bench=1) for phone/browser
+painting, or join the same room in another TV app. All garden rooms
+contain a Jukebox and a Potrait canvas; changing benches keeps your lobby.
+This preview uses local profile/device identities, not verified accounts.
+Canvas art and allowances are in memory and reset on server restart.
+
+BEE — THE THIRD BENCH
+Choose Bee Rectification or Mind Map after sitting down. Explore sample
+works immediately with clearly labeled example data. Connect your own
+wearable later using server/bee/SETUP.txt. Bee has a separate private
+pairing flow; garden room codes do not grant access to recordings.

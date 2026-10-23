@@ -1,0 +1,28 @@
+# Local operating-system and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Dependencies and generated build output
+node_modules/
+build/
+dist/
+generated/
+buildinfo.json
+*.vpkg
+coverage/
+
+# Local recordings and development context
+/video/
+AGENTS.md
+.vega/
+.adbt-config.json
+*.prompt.txt
+
+# Private configuration and Bee reviews
+.env
+.env.*
+!.env.example
+.bee-private/

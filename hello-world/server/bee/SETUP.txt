@@ -1,0 +1,95 @@
+THIRD SPACE — BEE BENCH
+
+The third garden bench opens two choices:
+  Bee Rectification: guided speaker review, including splitting a turn
+  between two speakers without changing the original words.
+  Mind Map: a source-linked map of a selected class or meeting.
+
+TRY IT NOW
+Sit on Bee, choose either activity and select Explore sample. The sample
+is explicitly labeled and contains no real Bee data. Lock Bee or leave
+the bench to close the private session. Sample corrections last only for
+that session.
+
+CONNECT YOUR WEARABLE LATER
+The official @beeai/cli 0.9.0 is installed locally as development tooling.
+It is used on the computer by the Node server, not packaged for Fire TV.
+No Bee account has been signed in or read as part of this implementation.
+
+1. Enable Developer Mode in the latest Bee phone app by tapping its app
+   version five times in Settings.
+2. From hello-world, run:
+     npm run bee -- login --no-wait
+   Open the returned Bee link and approve your own account connection.
+   Then run:
+     npm run bee -- status
+3. Add these values to hello-world/.env.local (ignored by Git):
+     BEE_ACCESS_CODE=your-private-pairing-code
+     BEE_PROFILE_KEY=a-stable-random-value-for-this-account
+     BEE_AGENT_ENABLED=0
+   Use at least 8 characters for the pairing code. Keep PROFILE_KEY stable
+   for this Bee account, and change it when switching accounts. The CLI
+   profile may not include a public account ID; PROFILE_KEY isolates this
+   account's locally saved speaker corrections in that case.
+4. Restart the room server from hello-world:
+     node --env-file=.env.local server/room-server.mjs
+5. On the Bee bench, choose an activity, enter your pairing code, and
+   select Connect Bee. Pick a recording from the paginated recent list.
+
+RECTIFICATION
+Bee prompts you to check each transcript turn. Enter the actual speaker,
+choose Me or Unknown, or split the turn after a word count and name the
+second speaker. Save & continue saves each correction individually.
+Previous lets you revisit earlier turns; Keep / skip leaves a turn as-is.
+Your original transcript words remain unchanged. Saved corrections are
+applied when the recording is reopened and when a mind map is generated.
+
+Bee's documented public CLI provides conversation reads, not a speaker
+label update command. This app therefore stores speaker corrections in
+Third Space, NOT back in Bee. It does not retrain Bee voice recognition
+or change the wearable's recordings. The review is a guided text dialogue
+with TV inputs, not a microphone/voice conversation.
+
+MIND MAPS
+Every account can create a transcript-based draft: turns are grouped into
+key ideas, decisions/plans, actions and questions. This extractive mode
+quotes short source passages; it does not pretend to be an LLM summary.
+Select any node to read the original turn with corrected speaker names.
+
+Optional Bee agent generation:
+  Set BEE_AGENT_ENABLED=1 and restart the server.
+  Bee's threads API is currently limited to Bee test-user accounts. This
+  sends the selected transcript and saved labels to the Bee agent using
+  the official CLI. The app validates node source IDs. If the account is
+  ineligible, the agent is busy, or its answer cannot be read, the app
+  still produces the clearly labeled transcript-based draft. Agent maps
+  should be reviewed against their sources too.
+
+PRIVACY AND STORAGE
+Bee has its own random bearer-token session, separate from garden room
+codes and member tokens. Pairing-code guesses are rate limited. Private
+sessions expire after 30 minutes or are revoked by Lock Bee / leaving.
+Bee transcripts and maps never appear in shared room snapshots, music
+queues, the pixel board or the public browser companion. This preview
+connects the one Bee account signed in on the host computer; it is not a
+multi-user Bee account login service. Real Bee use is for trusted local
+TVs; use HTTPS before deploying the private connection over the internet.
+
+Real corrections are saved with private filesystem permissions under:
+  hello-world/.bee-private/reviews/
+That directory is ignored by Git and excluded from app packaging. Files
+contain reviewed text segments, speaker names, source fingerprints and
+revision counters. Keep the directory if you want corrections to survive
+a server restart. It is local sensitive data; it is not encrypted at rest
+by Third Space. The original Bee data is still managed by Bee.
+
+WHAT WAS VERIFIED
+Automated tests use synthetic Bee fixtures to verify CLI argument/schema
+handling, private access, review persistence, exact text-preserving splits,
+revision conflicts, session locking, source IDs and the TV's two flows.
+Real wearable login and live Bee agent responses await your account.
+
+SOURCES
+https://docs.bee.computer/docs
+https://docs.bee.computer/docs/api
+https://github.com/bee-computer/bee-cli
