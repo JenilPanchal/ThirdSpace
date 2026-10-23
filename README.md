@@ -63,6 +63,3 @@ npx tsc --noEmit
 npm run build:debug
 ```
 
-## Current preview limits
-
-Shared rooms, queues, and canvas artwork are held in memory and reset when the server restarts. Sharing currently targets a local Wi-Fi network; public hosting, persistent community artwork, production authentication, and moderation are future work. Real Bee wearable authentication and live agent responses require account setup.
